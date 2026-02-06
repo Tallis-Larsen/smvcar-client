@@ -9,6 +9,7 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
-add_executable(smvcar-client src/main.cpp)
+file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
+add_executable(smvcar-client ${SOURCE_FILES})
 target_include_directories(smvcar-client PRIVATE include)
 target_link_libraries(smvcar-client PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
