@@ -4,7 +4,7 @@ LapStopwatch::LapStopwatch(QWidget* parent) : QTableWidget(parent) {
     setColumnCount(3);
     verticalHeader()->hide();
     setHorizontalHeaderLabels({"Lap Number", "Delta Time", "Total Time"});
-    setGeometry(0, 25, 480, 295);
+    setGeometry(0, 25, 300, 295);
     setRowCount(20);
 
     for (int i = 0; i < 20; i++) {
@@ -15,11 +15,12 @@ LapStopwatch::LapStopwatch(QWidget* parent) : QTableWidget(parent) {
     }
 
     scrollToBottom();
+    // Disables some unneeded UI elements
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
     setEditTriggers(QAbstractItemView::NoEditTriggers);
     setSelectionMode(QAbstractItemView::NoSelection);
+
     // Removes the initially highlighted cell at startup
     setCurrentItem(nullptr);
 }

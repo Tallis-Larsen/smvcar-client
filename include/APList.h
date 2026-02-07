@@ -1,9 +1,10 @@
 #pragma once
-#include <QTableWidget>
-#include <QHeaderView>
+#include <QListWidget>
 
-class LapStopwatch : public QTableWidget {
+class APList : public QListWidget {
     Q_OBJECT // This is custom to Qt and requires a custom compiler step. It designates the class as a Qt object.
 public:
-    LapStopwatch(QWidget* parent);
+    APList(QWidget* parent);
+public slots:
+    void refresh();
 };
