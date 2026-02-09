@@ -5,6 +5,14 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QBoxLayout>
+#include <QUuid>
+#include <NetworkManagerQt/Manager>
+#include <NetworkManagerQt/Settings>
+#include <NetworkManagerQt/ConnectionSettings>
+#include <NetworkManagerQt/WirelessSetting>
+#include <NetworkManagerQt/WirelessSecuritySetting>
+#include <NetworkManagerQt/Ipv4Setting>
+#include <NetworkManagerQt/Ipv6Setting>
 #include "APList.h"
 
 class WiFiDialogue : public QDialog {
