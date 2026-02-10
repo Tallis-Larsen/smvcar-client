@@ -88,7 +88,6 @@ void MainWindow::wifiStateChanged(NetworkManager::Device::State newState, Networ
 
 // This function could look prettier, but for now it works.
 void MainWindow::checkClickerConnected(const QString& path) {
-    qDebug() << "checkClickerConnected called";
     QDir deviceDirectory(path);
     QStringList filters("event*");
     deviceDirectory.setNameFilters(filters);
@@ -131,7 +130,6 @@ void MainWindow::checkClickerConnected(const QString& path) {
 }
 
 void MainWindow::connectToClicker() {
-    qDebug() << "connectToClicker called";
 
     // Just in case the clicker is null
     if (!clicker) { return; }
@@ -170,7 +168,6 @@ void MainWindow::connectToClicker() {
 }
 
 void MainWindow::recieveClickerInput() {
-    qDebug() << "entering recieveClickerInput";
 
     // Disable notifier to make sure it can't call this function again while it's running
     clickerNotifier->setEnabled(false);
@@ -181,8 +178,6 @@ void MainWindow::recieveClickerInput() {
 
     // Loop through all events in the buffer
     while (( bytesRead = read(clicker->handle(), &inputEvent, sizeof(inputEvent))) > 0) {
-
-        qDebug() << "receiveClickerInput loop ran";
 
         // One of the buttons was pressed, now we wait for the next event for the direction
         if (inputEvent.type == EV_KEY && inputEvent.code == 330 && inputEvent.value == 1) {
@@ -204,8 +199,6 @@ void MainWindow::recieveClickerInput() {
 
     }
 
-    qDebug() << "Exiting recieveClickerInput";
-
     // Re-enable notifier
     clickerNotifier->setEnabled(true);
 
@@ -219,8 +212,6 @@ void MainWindow::recieveClickerInput() {
 void MainWindow::setClickerConnected(bool isConnected) {
 
     clickerConnected = isConnected;
-
-    qDebug() << "clickerConnected set to:" << clickerConnected;
 
     QPalette palette = clickerStateIndicator.palette();
 
@@ -237,14 +228,12 @@ void MainWindow::setClickerConnected(bool isConnected) {
 }
 
 void MainWindow::disconnectClicker() {
-    qDebug() << "disconnectClicker called";
     if (clickerNotifier) {
         clickerNotifier->setEnabled(false);
         delete clickerNotifier;
         clickerNotifier = nullptr;
     }
     if (clicker) {
-        qDebug() << "Clicker Disconnected";
         if (clicker->isOpen()) {
             // Release the grab
             ioctl(clicker->handle(), EVIOCGRAB, 0);
