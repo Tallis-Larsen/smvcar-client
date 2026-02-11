@@ -1,7 +1,7 @@
 #include "../include/MainWindow.h"
 
 MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this),
-    shortcutLabel("WiFi: CTRL + W", this), wifiStateIndicator(this),
+    shortcutLabel("WiFi Menu: CTRL + W", this), wifiStateIndicator(this),
     clickerStateIndicator(this), clickerWatcher(this) {
 
     initDefaultPalette();
@@ -9,10 +9,12 @@ MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this),
     setPalette(defaultPalette);
     setAutoFillBackground(true);
 
-    shortcutLabel.setGeometry(0, 0, 125, 25);
-    wifiStateIndicator.setGeometry(280, 0, 200, 25);
+    shortcutLabel.setGeometry(280, 300, 200, 25);
+    shortcutLabel.setAlignment(Qt::AlignRight);
+    clickerStateIndicator.setGeometry(280, 275, 200, 25);
+    clickerStateIndicator.setAlignment(Qt::AlignRight);
+    wifiStateIndicator.setGeometry(280, 250, 200, 25);
     wifiStateIndicator.setAlignment(Qt::AlignRight);
-    clickerStateIndicator.setGeometry(150, 0, 200, 25);
 
     // ReSharper disable once CppDFAMemoryLeak | This does not actually leak because Qt handles the delete
     QShortcut *wifiShortcut = new QShortcut(QKeySequence("Ctrl+W"), this); // Creating a shortcut
@@ -42,6 +44,10 @@ MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this),
     // Call the function once to check if the clicker connected before the program started
     checkClickerConnected("/dev/input/");
 
+    // Set connect signals from pressing button to controlling the e stopway.ctch.
+    connect(this, &MainWindow::topButtonPressed, &stopwatch, &LapStopwatch::lap);
+    connect(this, &MainWindow::bottomButtonPressed, &stopwatch, &LapStopwatch::startStop);
+
 }
 
 void MainWindow::start() {
@@ -52,8 +58,8 @@ void MainWindow::start() {
 void MainWindow::wifiStateChanged(NetworkManager::Device::State newState, NetworkManager::Device::State oldState) {
     Q_UNUSED(oldState)
 
-    // Copy palette so it can be modified
-    QPalette palette = wifiStateIndicator.palette();
+    QString color;
+    QString statusText;
 
     // Cool C++ feature I learned: case fallthrough. Turns out you can do this and it works.
     switch (newState) {
@@ -63,8 +69,8 @@ void MainWindow::wifiStateChanged(NetworkManager::Device::State newState, Networ
         case NetworkManager::Device::Disconnected:
         case NetworkManager::Device::Failed:
         case NetworkManager::Device::Deactivating:
-            wifiStateIndicator.setText("Disconnected");
-            palette.setColor(QPalette::WindowText, QColor(255, 0, 0)); // Red
+            statusText = "Disconnected";
+            color = "#FF0000"; // Red
             break;
         case NetworkManager::Device::Preparing:
         case NetworkManager::Device::ConfiguringIp:
@@ -72,18 +78,19 @@ void MainWindow::wifiStateChanged(NetworkManager::Device::State newState, Networ
         case NetworkManager::Device::NeedAuth:
         case NetworkManager::Device::CheckingIp:
         case NetworkManager::Device::WaitingForSecondaries:
-            wifiStateIndicator.setText("Connecting");
-            palette.setColor(QPalette::WindowText, QColor(255, 255, 0)); // Yellow
+            statusText = "Connecting";
+            color = "#FFFF00"; // Yellow
             break;
         case NetworkManager::Device::Activated:
-            wifiStateIndicator.setText("Connected");
-            palette.setColor(QPalette::WindowText, QColor(0, 255, 0)); // Green
+            statusText = "Connected";
+            color = "#00FF00"; // Green
             break;
     }
 
-    // Re-apply the palette
-    wifiStateIndicator.setPalette(palette);
+    // Using fancy HTML to mix colors
+    QString htmlStatus = QString("<font color ='white'>WiFi: </font><font color='%1'>%2</font>").arg(color, statusText);
 
+    wifiStateIndicator.setText(htmlStatus);
 }
 
 // This function could look prettier, but for now it works.
@@ -188,9 +195,9 @@ void MainWindow::recieveClickerInput() {
 
             // If the value is below 1600, the top button was pressed. Otherwise, the bottom button was pressed.
             if (inputEvent.value < 1600) {
-                qDebug("TOP PRESSED");
+                emit topButtonPressed();
             } else {
-                qDebug("BOTTOM PRESSED");
+                emit bottomButtonPressed();
             }
 
             waitingForSwipe = false;
@@ -213,17 +220,21 @@ void MainWindow::setClickerConnected(bool isConnected) {
 
     clickerConnected = isConnected;
 
-    QPalette palette = clickerStateIndicator.palette();
+    QString color;
+    QString statusText;
 
     if (isConnected) {
-        clickerStateIndicator.setText("Connected");
-        palette.setColor(QPalette::WindowText, QColor(0, 255, 0)); // Green
+        statusText = "Connected";
+        color = "#00FF00"; // Green
     } else {
-        clickerStateIndicator.setText("Disconnected");
-        palette.setColor(QPalette::WindowText, QColor(255, 0, 0));
+        statusText = "Disconnected";
+        color = "#FF0000"; // Red
     }
 
-    clickerStateIndicator.setPalette(palette);
+    // Using fancy HTML to mix colors
+    QString htmlStatus = QString("<font color ='white'>Clicker: </font><font color='%1'>%2</font>").arg(color, statusText);
+
+    clickerStateIndicator.setText(htmlStatus);
 
 }
 

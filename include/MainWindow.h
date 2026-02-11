@@ -39,4 +39,9 @@ private slots:
     void wifiStateChanged(NetworkManager::Device::State newState, NetworkManager::Device::State oldState);
     void checkClickerConnected(const QString& path);
     void recieveClickerInput();
+
+// Signals aren't public or private and don't need an implementation, just declaration.
+signals:
+    void topButtonPressed();
+    void bottomButtonPressed();
 };
