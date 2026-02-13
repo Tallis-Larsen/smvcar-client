@@ -10,13 +10,14 @@ class LapStopwatch : public QWidget {
 public:
     LapStopwatch(QWidget* parent);
 public slots:
-    void startStop();
+    void startStopReset();
     void lap();
 private:
     QTableWidget table;
     QElapsedTimer timer;
     QTimer updateTimer;
     QLabel totalTime;
+    std::chrono::nanoseconds lastLapTime;
     bool isRunning = false;
 
     void addRow();

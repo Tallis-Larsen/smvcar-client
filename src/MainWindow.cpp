@@ -1,7 +1,7 @@
 #include "../include/MainWindow.h"
 
 MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this),
-    shortcutLabel("WiFi Menu: CTRL + W", this), wifiStateIndicator(this),
+    shortcutLabel("WiFi Menu: CTRL + W\nServer Menu: CTRL + S", this), wifiStateIndicator(this),
     clickerStateIndicator(this), clickerWatcher(this) {
 
     initDefaultPalette();
@@ -9,11 +9,11 @@ MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this),
     setPalette(defaultPalette);
     setAutoFillBackground(true);
 
-    shortcutLabel.setGeometry(280, 300, 200, 25);
+    shortcutLabel.setGeometry(280, 280, 200, 50);
     shortcutLabel.setAlignment(Qt::AlignRight);
-    clickerStateIndicator.setGeometry(280, 275, 200, 25);
+    clickerStateIndicator.setGeometry(280, 255, 200, 25);
     clickerStateIndicator.setAlignment(Qt::AlignRight);
-    wifiStateIndicator.setGeometry(280, 250, 200, 25);
+    wifiStateIndicator.setGeometry(280, 230, 200, 25);
     wifiStateIndicator.setAlignment(Qt::AlignRight);
 
     // ReSharper disable once CppDFAMemoryLeak | This does not actually leak because Qt handles the delete
@@ -44,9 +44,9 @@ MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this),
     // Call the function once to check if the clicker connected before the program started
     checkClickerConnected("/dev/input/");
 
-    // Set connect signals from pressing button to controlling the e stopway.ctch.
+    // Set connect signals from pressing button to controlling the stopwatch.
     connect(this, &MainWindow::topButtonPressed, &stopwatch, &LapStopwatch::lap);
-    connect(this, &MainWindow::bottomButtonPressed, &stopwatch, &LapStopwatch::startStop);
+    connect(this, &MainWindow::bottomButtonPressed, &stopwatch, &LapStopwatch::startStopReset);
 
 }
 

@@ -5,8 +5,9 @@ LapStopwatch::LapStopwatch(QWidget* parent) : QWidget(parent), table(this), upda
 
     table.setColumnCount(3);
     table.verticalHeader()->hide();
-    table.setHorizontalHeaderLabels({"Lap Number", "Delta Time", "Total Time"});
-    table.setGeometry(0, 25, 300, 295);
+    table.setHorizontalHeaderLabels({"Lap #", "Time", "Raw Lap Time (centiseconds)"});
+    table.hideColumn(2);
+    table.setGeometry(0, 25, 200, 295);
 
     totalTime.setGeometry(0, 0, 200, 25);
 
@@ -23,18 +24,30 @@ LapStopwatch::LapStopwatch(QWidget* parent) : QWidget(parent), table(this), upda
 
 }
 
-void LapStopwatch::startStop() {
-    if (!isRunning) {
+void LapStopwatch::startStopReset() {
+    if (!isRunning && table.rowCount() == 0) {
+        // Start
         timer.start();
         updateTimer.start(50);
         isRunning = true;
         addRow();
+        lastLapTime = std::chrono::nanoseconds{0};
+    } else if (isRunning) {
+        // Stop
+        timer.invalidate();
+        updateTimer.stop();
+        isRunning = false;
+    } else {
+        // Reset
+        table.setRowCount(0);
+        totalTime.setText("00:00.00");
     }
 }
 
 void LapStopwatch::lap() {
     if (isRunning) {
         addRow();
+        lastLapTime = timer.durationElapsed();
     }
 }
 
@@ -47,22 +60,28 @@ void LapStopwatch::addRow() {
 }
 
 void LapStopwatch::updateTime() {
-    std::chrono::nanoseconds duration = timer.durationElapsed();
+    std::chrono::nanoseconds totalDuration = timer.durationElapsed();
+    std::chrono::nanoseconds lapDuration = totalDuration - lastLapTime;
 
     // Creating a centiseconds type set to 1/100th of a second
     using centiseconds = std::chrono::duration<int, std::ratio<1, 100>>;
 
     // Rounding down from nanoseconds to centiseconds
-    centiseconds roundedDuration = std::chrono::floor<centiseconds>(duration);
-
+    centiseconds roundedDuration = std::chrono::floor<centiseconds>(totalDuration);
     // Converting to formatted string
     QString durationString = QString::fromStdString(std::format("{:%M:%S}", roundedDuration));
-
+    // Setting to totalTime label
     totalTime.setText(durationString);
 
+    // Re-using the same variables and process for the lapDuration
+    roundedDuration = std::chrono::floor<centiseconds>(lapDuration);
+    durationString = QString::fromStdString(std::format("{:%M:%S}", roundedDuration));
     // ReSharper disable once CppDFAMemoryLeak | This does not actually leak because Qt handles the delete
     QTableWidgetItem* durationItem = new QTableWidgetItem(durationString);
+    // We want to save the duration as an integer still for sending to the server
+    QTableWidgetItem* rawDurationItem = new QTableWidgetItem(QString::number(roundedDuration.count()));
 
     // Because we are 'giving' durationItem to the QTableWidget, Qt will now handle memory management for it.
-    table.setItem(0, 2, durationItem);
+    table.setItem(0, 1, durationItem);
+    table.setItem(0, 2, rawDurationItem);
 }

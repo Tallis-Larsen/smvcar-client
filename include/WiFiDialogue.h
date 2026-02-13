@@ -18,9 +18,9 @@
 class WiFiDialogue : public QDialog {
     Q_OBJECT
 public:
-    WiFiDialogue(QWidget *parent);
+    WiFiDialogue(QWidget* parent);
 protected:
-    void keyPressEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 private:
     QLabel label;
     QPushButton refreshButton;
