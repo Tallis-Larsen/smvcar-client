@@ -11,6 +11,7 @@
 #include <NetworkManagerQt/Device>
 #include <linux/input.h>
 #include "WiFiDialogue.h"
+#include "ServerDialogue.h"
 #include "DefaultPalette.h"
 #include "LapStopwatch.h"
 
@@ -25,6 +26,7 @@ private:
     QLabel clickerStateIndicator;
     LapStopwatch stopwatch;
     WiFiDialogue wifiDialogue;
+    ServerDialogue serverDialogue;
     NetworkManager::WirelessDevice::Ptr wlan0;
     QFileSystemWatcher clickerWatcher;
     QFile* clicker = nullptr;

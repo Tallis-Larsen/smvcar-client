@@ -1,6 +1,6 @@
 #include "../include/MainWindow.h"
 
-MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this),
+MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this), serverDialogue(this),
     shortcutLabel("WiFi Menu: CTRL + W\nServer Menu: CTRL + S", this), wifiStateIndicator(this),
     clickerStateIndicator(this), clickerWatcher(this) {
 
