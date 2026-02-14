@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QBoxLayout>
+#include "ServerAPI.h"
 
 class ServerDialogue : public QDialog {
     Q_OBJECT

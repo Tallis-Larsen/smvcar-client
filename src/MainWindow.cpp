@@ -2,7 +2,7 @@
 
 MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this), serverDialogue(this),
     shortcutLabel("WiFi Menu: CTRL + W\nServer Menu: CTRL + S", this), wifiStateIndicator(this),
-    clickerStateIndicator(this), clickerWatcher(this) {
+    clickerStateIndicator(this), serverStateIndicator(this), clickerWatcher(this) {
 
     initDefaultPalette();
     resize(480, 320);
@@ -11,14 +11,20 @@ MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this), serverDialogue(t
 
     shortcutLabel.setGeometry(280, 280, 200, 50);
     shortcutLabel.setAlignment(Qt::AlignRight);
-    clickerStateIndicator.setGeometry(280, 255, 200, 25);
+    serverStateIndicator.setGeometry(280, 255, 200, 25);
+    serverStateIndicator.setAlignment(Qt::AlignRight);
+    clickerStateIndicator.setGeometry(280, 230, 200, 25);
     clickerStateIndicator.setAlignment(Qt::AlignRight);
-    wifiStateIndicator.setGeometry(280, 230, 200, 25);
+    wifiStateIndicator.setGeometry(280, 205, 200, 25);
     wifiStateIndicator.setAlignment(Qt::AlignRight);
 
     // ReSharper disable once CppDFAMemoryLeak | This does not actually leak because Qt handles the delete
-    QShortcut *wifiShortcut = new QShortcut(QKeySequence("Ctrl+W"), this); // Creating a shortcut
+    QShortcut* wifiShortcut = new QShortcut(QKeySequence("Ctrl+W"), this); // Creating a shortcut
     connect(wifiShortcut, &QShortcut::activated, &wifiDialogue, &WiFiDialogue::show); // Setting the callback for the shortcut
+
+    // The same for the server dialogue
+    QShortcut* serverShortcut = new QShortcut(QKeySequence("Ctrl+S"), this);
+    connect(serverShortcut, &QShortcut::activated, &serverDialogue, &ServerDialogue::show);
 
     // Find and set wlan0
     NetworkManager::Device::List interfaces = NetworkManager::networkInterfaces();
@@ -36,6 +42,10 @@ MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this), serverDialogue(t
     connect(wlan0.data(), &NetworkManager::Device::stateChanged, this, &MainWindow::wifiStateChanged);
     // Initially call function to ensure the state doesn't say "Disconnected" when it actually connected before the program started
     wifiStateChanged(wlan0->state(), wlan0->state()); // oldState argument doesn't matter, it's just required for the signal to be accepted
+
+    // Do the same for the server state indicator
+    connect(&ServerAPI::instance(), &ServerAPI::serverStatusChanged, this, &MainWindow::setServerState);
+    setServerState(ServerAPI::instance().connected);
 
     // Watching the kernel for new bluetooth devices
     clickerWatcher.addPath("/dev/input/");
@@ -91,6 +101,24 @@ void MainWindow::wifiStateChanged(NetworkManager::Device::State newState, Networ
     QString htmlStatus = QString("<font color ='white'>WiFi: </font><font color='%1'>%2</font>").arg(color, statusText);
 
     wifiStateIndicator.setText(htmlStatus);
+}
+
+void MainWindow::setServerState(bool isConnected) {
+    QString color;
+    QString statusText;
+
+    if (isConnected) {
+        statusText = "Connected";
+        color = "#00FF00"; // Green
+    } else {
+        statusText = "Disconnected";
+        color = "#FF0000"; // Red
+    }
+
+    // Using fancy HTML to mix colors
+    QString htmlStatus = QString("<font color ='white'>Server: </font><font color='%1'>%2</font>").arg(color, statusText);
+
+    serverStateIndicator.setText(htmlStatus);
 }
 
 // This function could look prettier, but for now it works.

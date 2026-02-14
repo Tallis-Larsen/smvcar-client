@@ -6,6 +6,7 @@ ServerDialogue::ServerDialogue(QWidget* parent) : QDialog(parent), label("Connec
     buttonLayout.addWidget(&cancelButton);
     buttonLayout.addWidget(&connectButton);
 
+    mainLayout.addWidget(&label);
     mainLayout.addWidget(&urlField);
     mainLayout.addLayout(&buttonLayout);
 
@@ -15,11 +16,12 @@ ServerDialogue::ServerDialogue(QWidget* parent) : QDialog(parent), label("Connec
     setLayout(&mainLayout);
     setGeometry(25, 25, 430, 270);
 
-
+    urlField.setText(ServerAPI::instance().getUrl());
 }
 
 void ServerDialogue::connectButtonPressed() {
-
+    ServerAPI::instance().setUrl(urlField.text());
+    hide();
 }
 
 void ServerDialogue::keyPressEvent(QKeyEvent* event) {
