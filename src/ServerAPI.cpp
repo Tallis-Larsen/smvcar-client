@@ -1,44 +1,132 @@
 #include "../include/ServerAPI.h"
 
-#include "MainWindow.h"
-
 ServerAPI::ServerAPI(QObject* parent) : QObject(parent) {
-    // Ping the server every 5 seconds to check if the connection is valid
-    connect(&pingTimer, &QTimer::timeout, this, &ServerAPI::pingServer);
-    connect(&pingManager, &QNetworkAccessManager::finished, this, &ServerAPI::onPingReply);
-    pingTimer.start(5000);
-
+    connect(&webSocket, &QWebSocket::connected, this, &ServerAPI::onConnected);
+    connect(&webSocket, &QWebSocket::disconnected, this, &ServerAPI::onDisconnected);
+    connect(&webSocket, &QWebSocket::textMessageReceived, this, &ServerAPI::processMessage);
     // Initially load the saved base url
     setUrl(getUrl());
+}
+
+void ServerAPI::onConnected() {
+    connected = true;
+    emit serverStatusChanged(true);
+    flushQueue();
+}
+
+void ServerAPI::onDisconnected() {
+    connected = false;
+    emit serverStatusChanged(false);
+    QTimer::singleShot(3000, this, [this]() { webSocket.open(baseUrl); });
+}
+
+void ServerAPI::processMessage(const QString& message) {
+
+    for (const QString& queueMessage : pendingMessages) {
+        if (queueMessage == message) {
+            pendingMessages.removeOne(queueMessage);
+            return;
+        }
+    }
+
+    QJsonDocument document = QJsonDocument::fromJson(message.toUtf8());
+
+    if (document.isNull() || !document.isObject()) {
+        qWarning() << "Received invalid JSON";
+        return;
+    }
+
+    QJsonObject command = document.object();
+    QString function = command["function"].toString();
+
+    if (function == "setTargetLaps") {
+        emit setTargetLaps(command["target_laps"].toInt());
+    } else if (function == "setTargetTime") {
+        std::chrono::minutes targetTime(command["target_time"].toInteger());
+        emit setTargetTime(targetTime);
+    } else if (function == "setId") {
+        clientId = command["client_id"].toInt();
+    } else if (function == "setPrefix") {
+        messageIdPrefix = command["message_prefix"].toString();
+    } else if (function == "startStopwatch") {
+        QDateTime time = QDateTime::fromString(command["timestamp"].toString(), Qt::ISODateWithMs);
+        emit addStopwatchStart(time, command["command_id"].toString());
+    } else if (function == "stopStopwatch") {
+        QDateTime time = QDateTime::fromString(command["timestamp"].toString(), Qt::ISODateWithMs);
+        emit addStopwatchStop(time, command["command_id"].toString());
+    } else if (function == "lap") {
+        QDateTime time = QDateTime::fromString(command["timestamp"].toString(), Qt::ISODateWithMs);
+        emit addLap(time, command["command_id"].toString());
+    } else if (function == "reject") {
+        emit removeLap(command["command_id"].toString());
+    }
+
+}
+
+void ServerAPI::sendMessage(const QJsonObject& message) {
+    QString messageString = QString::fromUtf8(QJsonDocument(message).toJson(QJsonDocument::Compact));
+    flushQueue();
+    pendingMessages.enqueue(messageString);
+    if (connected) {
+        webSocket.sendTextMessage(messageString);
+    }
+}
+
+QString ServerAPI::nextCommandId() {
+    return messageIdPrefix + QString::number(nextMessageId++);
+}
+
+void ServerAPI::flushQueue() {
+    if (!connected) { return; }
+
+    for (const QString& message : pendingMessages) {
+        webSocket.sendTextMessage(message);
+    }
 }
 
 void ServerAPI::setUrl(const QString& url) {
     savedUrlSetting.setValue("base_url", url);
     baseUrl = url;
-    pingServer();
+    webSocket.open(baseUrl);
 }
 
 QString ServerAPI::getUrl() {
     return savedUrlSetting.value("base_url", "").toString();
 }
 
-void ServerAPI::pingServer() {
-    QNetworkRequest request = QNetworkRequest(QUrl(baseUrl));
-    request.setTransferTimeout(3000);
-    pingManager.get(request);
+QString ServerAPI::lap(QDateTime time) {
+    QJsonObject message;
+    message["function"] = "lap";
+    message["timestamp"] = time.toString(Qt::ISODateWithMs);
+    QString commandId = nextCommandId();
+    message["command_id"] = commandId;
+    sendMessage(message);
+    return commandId;
 }
 
-void ServerAPI::onPingReply(QNetworkReply* reply) {
-    // If there was no error, we assume that the ping was successful.
-    bool isConnected = reply->error() == QNetworkReply::NoError;
-    setConnected(isConnected);
-    // Delete the reply to avoid memory leaks
-    reply->deleteLater();
+QString ServerAPI::startStopwatch(QDateTime time) {
+    QJsonObject message;
+    message["function"] = "startStopwatch";
+    message["timestamp"] = time.toString(Qt::ISODateWithMs);
+    QString commandId = nextCommandId();
+    message["command_id"] = commandId;
+    sendMessage(message);
+    return commandId;
 }
 
-void ServerAPI::setConnected(bool isConnected) {
-    if (connected != isConnected) {
-        connected = isConnected;
-        emit serverStatusChanged(isConnected);
-    }
+QString ServerAPI::stopStopwatch(QDateTime time) {
+    QJsonObject message;
+    message["function"] = "stopStopwatch";
+    message["timestamp"] = time.toString(Qt::ISODateWithMs);
+    QString commandId = nextCommandId();
+    message["command_id"] = commandId;
+    sendMessage(message);
+    return commandId;
+}
+
+void ServerAPI::resetStopwatch() {
+    QJsonObject message;
+    message["function"] = "resetStopwatch";
+    message["command_id"] = nextCommandId();
+    sendMessage(message);
 }
