@@ -26,6 +26,7 @@ public:
 private:
     ServerAPI(QObject* parent = nullptr);
     QWebSocket webSocket;
+    QTimer keepAliveTimer;
     QQueue<QString> pendingMessages;
     QSettings savedUrlSetting = QSettings("SMV", "smvcar-client");
     QString baseUrl = "";

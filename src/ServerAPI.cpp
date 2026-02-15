@@ -20,6 +20,10 @@ ServerAPI::ServerAPI(QObject* parent) : QObject(parent) {
     connect(&webSocket, &QWebSocket::connected, this, &ServerAPI::onConnected);
     connect(&webSocket, &QWebSocket::disconnected, this, &ServerAPI::onDisconnected);
     connect(&webSocket, &QWebSocket::textMessageReceived, this, &ServerAPI::processMessage);
+
+    connect(&keepAliveTimer, &QTimer::timeout, this, [this]() {
+    if (webSocket.state() == QAbstractSocket::ConnectedState) { webSocket.ping(); }});
+
     // Initially load the saved base url
     setUrl(getUrl());
 }
@@ -28,9 +32,13 @@ void ServerAPI::onConnected() {
     connected = true;
     emit serverStatusChanged(true);
     flushQueue();
+    // 30-second ping interval to keep the connection alive
+    keepAliveTimer.start(30000);
 }
 
 void ServerAPI::onDisconnected() {
+    keepAliveTimer.stop();
+
     connected = false;
     emit serverStatusChanged(false);
     QTimer::singleShot(3000, this, [this]() { webSocket.open(baseUrl); });
@@ -38,14 +46,18 @@ void ServerAPI::onDisconnected() {
 
 void ServerAPI::processMessage(const QString& message) {
 
-    for (const QString& queueMessage : pendingMessages) {
-        QJsonObject queueMessageObject = QJsonDocument::fromJson(queueMessage.toUtf8()).object();
+    for (int i = 0; i < pendingMessages.size(); i++) {
+        QJsonObject queueMessageObject = QJsonDocument::fromJson(pendingMessages[i].toUtf8()).object();
         QJsonObject activeMessageObject = QJsonDocument::fromJson(message.toUtf8()).object();
         if (queueMessageObject[COMMAND_ID].toString() == activeMessageObject[COMMAND_ID].toString()) {
             if (activeMessageObject[FUNCTION].toString() == REJECT) {
                 emit removeLap(activeMessageObject[COMMAND_ID].toString());
             }
-            pendingMessages.removeOne(queueMessage);
+            if (activeMessageObject[FUNCTION].toString() == RESET_STOPWATCH) {
+                pendingMessages.clear();
+                return;
+            }
+            pendingMessages.removeAt(i);
             return;
         }
     }
@@ -98,6 +110,7 @@ void ServerAPI::flushQueue() {
 
     for (const QString& message : pendingMessages) {
         webSocket.sendTextMessage(message);
+        qDebug() << "Queue Flush:" << message;
     }
 }
 
