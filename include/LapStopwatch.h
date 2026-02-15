@@ -39,5 +39,6 @@ private:
     void recalculateTable();
     void updateTime();
     void updateColors(QTableWidgetItem* item, std::chrono::seconds lapDuration);
+    void calculateTargetLapTime();
     void reset();
 };

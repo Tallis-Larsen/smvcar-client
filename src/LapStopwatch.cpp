@@ -1,8 +1,8 @@
 #include "../include/LapStopwatch.h"
 
 LapStopwatch::LapStopwatch(QWidget* parent) : QWidget(parent), table(this), updateTimer(this),
-    totalTime("00:00.00", this), lapProgress(this), timeProgress(this),
-    currentLapDisplay("Laps: 0", this), targetLapsDisplay("Target: 0", this), targetTimeDisplay("00:00", this) {
+    totalTime("00:00:00", this), lapProgress(this), timeProgress(this),
+    currentLapDisplay("Laps: 0", this), targetLapsDisplay("Target: --", this), targetTimeDisplay("--:--", this) {
 
     setGeometry(0, 0, 480, 320);
 
@@ -17,15 +17,15 @@ LapStopwatch::LapStopwatch(QWidget* parent) : QWidget(parent), table(this), upda
     table.setColumnWidth(1, 180);
 
     totalTime.setGeometry(0, 0, 200, 25);
-    timeProgress.setGeometry(75, 0, 330, 25);
+    timeProgress.setGeometry(75, 0, 320, 25);
     timeProgress.setMinimum(0);
-    targetTimeDisplay.setGeometry(405, 0, 75, 25);
+    targetTimeDisplay.setGeometry(395, 0, 85, 25);
     targetTimeDisplay.setAlignment(Qt::AlignRight);
 
     currentLapDisplay.setGeometry(0, 25, 75, 25);
-    lapProgress.setGeometry(75, 25, 330, 25);
+    lapProgress.setGeometry(75, 25, 320, 25);
     lapProgress.setMinimum(0);
-    targetLapsDisplay.setGeometry(405, 25, 75, 25);
+    targetLapsDisplay.setGeometry(395, 25, 85, 25);
     targetLapsDisplay.setAlignment(Qt::AlignRight);
 
     QPalette palette = timeProgress.palette();
@@ -81,7 +81,7 @@ void LapStopwatch::reset() {
     lapProgress.setValue(0);
     timeProgress.setValue(0);
     currentLapDisplay.setText("Laps: 0");
-    totalTime.setText("00:00.00");
+    totalTime.setText("00:00:00");
     ServerAPI::instance().resetStopwatch();
 }
 
@@ -119,12 +119,14 @@ void LapStopwatch::removeRow(const QString& commandId) {
 
 void LapStopwatch::setTargetTime(std::chrono::minutes minutes) {
     timeProgress.setMaximum(std::chrono::seconds(minutes).count());
-    targetTimeDisplay.setText(QString::fromStdString(std::format("{:%M:%S}", minutes)));
+    targetTimeDisplay.setText(QString::fromStdString(std::format("{:%H:%M:%S}", minutes)));
+    calculateTargetLapTime();
 }
 
 void LapStopwatch::setTargetLaps(int laps) {
     lapProgress.setMaximum(laps);
     targetLapsDisplay.setText("Target: " + QString::number(laps));
+    calculateTargetLapTime();
 }
 
 void LapStopwatch::recalculateTable() {
@@ -149,7 +151,8 @@ void LapStopwatch::recalculateTable() {
         centiseconds timeElapsed = std::chrono::floor<centiseconds>(std::chrono::milliseconds{currentTimestamp.msecsTo(previousTimestamp)});
         QTableWidgetItem* newItem = new QTableWidgetItem(QString::fromStdString(std::format("{:%M:%S}", timeElapsed)));
 
-        updateColors(newItem, std::chrono::seconds{currentTimestamp.msecsTo(previousTimestamp)});
+        updateColors(newItem, std::chrono::floor<std::chrono::seconds>
+            (std::chrono::milliseconds{currentTimestamp.msecsTo(previousTimestamp)}));
 
         table.setItem(i, 1, newItem);
     }
@@ -167,12 +170,12 @@ void LapStopwatch::updateTime() {
     // Setting the totalTime based on the time since the stopwatch started
     QTableWidgetItem* startTimeItem = table.item(table.rowCount() - 1, 2);
     QDateTime startTime = QDateTime::fromString(startTimeItem->text(), Qt::ISODateWithMs);
-    centiseconds totalDuration = std::chrono::floor<centiseconds>
+    std::chrono::seconds totalDuration = std::chrono::floor<std::chrono::seconds>
         (std::chrono::milliseconds{startTime.msecsTo(QDateTime::currentDateTime())});
-    totalTime.setText(QString::fromStdString(std::format("{:%M:%S}", totalDuration)));
+    totalTime.setText(QString::fromStdString(std::format("{:%H:%M:%S}", totalDuration)));
 
     // Use the same variable to track the progress bar
-    timeProgress.setValue(totalDuration.count() / 100);
+    timeProgress.setValue(totalDuration.count());
 
     // Now we update the active lap the same way
     QTableWidgetItem* lapStartItem = table.item(0, 2);
@@ -181,7 +184,8 @@ void LapStopwatch::updateTime() {
         (std::chrono::milliseconds{lapStartTime.msecsTo(QDateTime::currentDateTime())});
     QTableWidgetItem* newItem = new QTableWidgetItem(QString::fromStdString(std::format("{:%M:%S}", lapDuration)));
 
-    updateColors(newItem, std::chrono::seconds{lapStartTime.msecsTo(QDateTime::currentDateTime())});
+    updateColors(newItem, std::chrono::floor<std::chrono::seconds>
+        (std::chrono::milliseconds{lapStartTime.msecsTo(QDateTime::currentDateTime())}));
 
     table.setItem(0, 1, newItem);
 
@@ -193,4 +197,8 @@ void LapStopwatch::updateColors(QTableWidgetItem* item, std::chrono::seconds lap
     } else {
         item->setForeground(QColor("#00FF00")); // Green
     }
+}
+
+void LapStopwatch::calculateTargetLapTime() {
+    targetLapTime = std::chrono::seconds{timeProgress.maximum() / lapProgress.maximum()};
 }
