@@ -13,5 +13,6 @@ find_package(KF6NetworkManagerQt REQUIRED)
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS "include/*.h") # Header files need to be included so that the QT MOC picks up on them
 add_executable(smvcar-client ${SOURCE_FILES} ${HEADER_FILES})
+configure_file(${CMAKE_SOURCE_DIR}/KHS_Logo.png ${CMAKE_BINARY_DIR}/KHS_Logo.png COPYONLY)
 target_include_directories(smvcar-client PRIVATE include)
 target_link_libraries(smvcar-client PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::DBus Qt6::WebSockets KF6::NetworkManagerQt)

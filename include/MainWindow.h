@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QSocketNotifier>
+#include <QPixmap>
 #include <fcntl.h>
 #include <unistd.h>
 #include <NetworkManagerQt/Device>
@@ -26,6 +27,7 @@ private:
     QLabel wifiStateIndicator;
     QLabel clickerStateIndicator;
     QLabel serverStateIndicator;
+    QLabel khsLogo;
     LapStopwatch stopwatch;
     WiFiDialogue wifiDialogue;
     ServerDialogue serverDialogue;

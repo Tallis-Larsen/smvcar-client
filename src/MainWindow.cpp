@@ -2,7 +2,7 @@
 
 MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this), serverDialogue(this),
     shortcutLabel("WiFi Menu: CTRL + W\nServer Menu: CTRL + S", this), wifiStateIndicator(this),
-    clickerStateIndicator(this), serverStateIndicator(this), clickerWatcher(this) {
+    clickerStateIndicator(this), serverStateIndicator(this), clickerWatcher(this), khsLogo(this) {
 
     initDefaultPalette();
     resize(480, 320);
@@ -17,6 +17,12 @@ MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this), serverDialogue(t
     clickerStateIndicator.setAlignment(Qt::AlignRight);
     wifiStateIndicator.setGeometry(280, 205, 200, 25);
     wifiStateIndicator.setAlignment(Qt::AlignRight);
+
+    khsLogo.setGeometry(290, 60, 180, 135);
+    QPixmap pixmap("KHS_Logo.png");
+    khsLogo.setPixmap(pixmap.scaled(khsLogo.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    khsLogo.setAttribute(Qt::WA_TranslucentBackground);
+    khsLogo.setAlignment(Qt::AlignCenter);
 
     // ReSharper disable once CppDFAMemoryLeak | This does not actually leak because Qt handles the delete
     QShortcut* wifiShortcut = new QShortcut(QKeySequence("Ctrl+W"), this); // Creating a shortcut
@@ -57,7 +63,6 @@ MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this), serverDialogue(t
     // Set connect signals from pressing button to controlling the stopwatch.
     connect(this, &MainWindow::topButtonPressed, &stopwatch, &LapStopwatch::lap);
     connect(this, &MainWindow::bottomButtonPressed, &stopwatch, &LapStopwatch::startStopReset);
-
 }
 
 void MainWindow::start() {
