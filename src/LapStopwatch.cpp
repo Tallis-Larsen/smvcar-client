@@ -95,14 +95,14 @@ void LapStopwatch::recalculateTable() {
     table.sortByColumn(2, Qt::DescendingOrder);
 
     // Recalculate row numbers
-    for (int i = 0; i < table.rowCount(); i++) {
-        QTableWidgetItem* rowNumber = new QTableWidgetItem(QString::number(i + 1));
+    for (int i = table.rowCount() - 1; i > -1; i--) {
+        QTableWidgetItem* rowNumber = new QTableWidgetItem(QString::number(table.rowCount() - i));
         rowNumber->setTextAlignment(Qt::AlignCenter);
         table.setItem(i, 0, rowNumber);
     }
 
     // Calculating the timers for all inactive rows
-    for (int i = table.rowCount() - 1; i > -1; i--) {
+    for (int i = 0; i < table.rowCount(); i++) {
         QTableWidgetItem* previousItem = table.item(i - 1, 2);
         QTableWidgetItem* currentItem = table.item(i, 2);
 
