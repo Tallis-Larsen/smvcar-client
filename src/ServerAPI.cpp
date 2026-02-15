@@ -21,10 +21,14 @@ void ServerAPI::onDisconnected() {
 }
 
 void ServerAPI::processMessage(const QString& message) {
+
     for (const QString& queueMessage : pendingMessages) {
         QJsonObject queueMessageObject = QJsonDocument::fromJson(queueMessage.toUtf8()).object();
         QJsonObject activeMessageObject = QJsonDocument::fromJson(message.toUtf8()).object();
         if (queueMessageObject["command_id"].toString() == activeMessageObject["command_id"].toString()) {
+            if (activeMessageObject["function"].toString() == "reject") {
+                emit removeLap(activeMessageObject["command_id"].toString());
+            }
             pendingMessages.removeOne(queueMessage);
             return;
         }
@@ -54,12 +58,10 @@ void ServerAPI::processMessage(const QString& message) {
         emit addStopwatchStart(time, command["command_id"].toString());
     } else if (function == "stopStopwatch") {
         QDateTime time = QDateTime::fromString(command["timestamp"].toString(), Qt::ISODateWithMs);
-        emit addStopwatchStop(time, command["command_id"].toString());
+        emit addStopwatchStop();
     } else if (function == "lap") {
         QDateTime time = QDateTime::fromString(command["timestamp"].toString(), Qt::ISODateWithMs);
         emit addLap(time, command["command_id"].toString());
-    } else if (function == "reject") {
-        emit removeLap(command["command_id"].toString());
     }
 
 }

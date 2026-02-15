@@ -15,7 +15,7 @@ public:
     LapStopwatch(QWidget* parent);
 public slots:
     void startStopReset();
-    void start();
+    void start(QDateTime time, QString id);
     void stop();
     void lap();
     void addRow(const QDateTime& lapTime, const QString& commandId);

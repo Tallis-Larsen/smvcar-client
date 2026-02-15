@@ -46,5 +46,5 @@ signals:
     void addLap(QDateTime time, QString id);
     void removeLap(QString id);
     void addStopwatchStart(QDateTime time, QString id);
-    void addStopwatchStop(QDateTime time, QString id);
+    void addStopwatchStop();
 };

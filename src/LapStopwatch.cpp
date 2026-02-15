@@ -30,26 +30,27 @@ LapStopwatch::LapStopwatch(QWidget* parent) : QWidget(parent), table(this), upda
 
 void LapStopwatch::startStopReset() {
     if (!isRunning && table.rowCount() == 0) {
-        start();
+        QString commandId = ServerAPI::instance().startStopwatch(QDateTime::currentDateTime());
+        QDateTime time = QDateTime::currentDateTime();
+        start(time, commandId);
     } else if (isRunning) {
         stop();
+        ServerAPI::instance().stopStopwatch(QDateTime::currentDateTime());
     } else {
         reset();
     }
 }
 
-void LapStopwatch::start() {
+void LapStopwatch::start(QDateTime time, QString id) {
     updateTimer.start(50);
     isRunning = true;
-    QString commandId = ServerAPI::instance().startStopwatch(QDateTime::currentDateTime());
-    addRow(QDateTime::currentDateTime(), commandId);
-    updateTime();
+    addRow(time, id);
 }
 
 void LapStopwatch::stop() {
     updateTimer.stop();
+    updateTime(); // One last update
     isRunning = false;
-    ServerAPI::instance().stopStopwatch(QDateTime::currentDateTime());
 }
 
 void LapStopwatch::reset() {
@@ -102,7 +103,7 @@ void LapStopwatch::recalculateTable() {
     }
 
     // Calculating the timers for all inactive rows
-    for (int i = 0; i < table.rowCount(); i++) {
+    for (int i = 1; i < table.rowCount(); i++) {
         QTableWidgetItem* previousItem = table.item(i - 1, 2);
         QTableWidgetItem* currentItem = table.item(i, 2);
 
