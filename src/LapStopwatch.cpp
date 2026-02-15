@@ -3,7 +3,7 @@
 LapStopwatch::LapStopwatch(QWidget* parent) : QWidget(parent), table(this), updateTimer(this), totalTime("00:00.00", this) {
     setGeometry(0, 0, 480, 320);
 
-    table.setColumnCount(3);
+    table.setColumnCount(4);
     table.verticalHeader()->hide();
     table.setHorizontalHeaderLabels({"Lap #", "Time", "Timestamp", "command_id"});
     table.hideColumn(2);
@@ -69,7 +69,7 @@ void LapStopwatch::addRow(const QDateTime& lapTime, const QString& commandId) {
     table.insertRow(0);
 
     // Storing the time the lap was recorded
-    QTableWidgetItem* timeItem = new QTableWidgetItem(lapTime.toString(Qt::ISODateWithMs));
+    QTableWidgetItem* timeItem = new QTableWidgetItem(lapTime.toUTC().toString(Qt::ISODateWithMs));
     table.setItem(0, 2, timeItem);
 
     QTableWidgetItem* idItem = new QTableWidgetItem(commandId);
@@ -92,7 +92,7 @@ void LapStopwatch::removeRow(const QString& commandId) {
 
 void LapStopwatch::recalculateTable() {
     // We can't guarantee that the row added will be in order, so this sorts it
-    table.sortByColumn(2, Qt::AscendingOrder);
+    table.sortByColumn(2, Qt::DescendingOrder);
 
     // Recalculate row numbers
     for (int i = 0; i < table.rowCount(); i++) {
@@ -102,12 +102,12 @@ void LapStopwatch::recalculateTable() {
     }
 
     // Calculating the timers for all inactive rows
-    for (int i = 1; i < table.rowCount(); i++) {
+    for (int i = table.rowCount() - 1; i > -1; i--) {
         QTableWidgetItem* previousItem = table.item(i - 1, 2);
         QTableWidgetItem* currentItem = table.item(i, 2);
 
         QDateTime previousTimestamp = QDateTime::fromString(previousItem->text(), Qt::ISODateWithMs);
-        QDateTime currentTimestamp = QDateTime::fromString(previousItem->text(), Qt::ISODateWithMs);
+        QDateTime currentTimestamp = QDateTime::fromString(currentItem->text(), Qt::ISODateWithMs);
 
         centiseconds timeElapsed = std::chrono::floor<centiseconds>(std::chrono::milliseconds{currentTimestamp.msecsTo(previousTimestamp)});
         QTableWidgetItem* newItem = new QTableWidgetItem(QString::fromStdString(std::format("{:%M:%S}", timeElapsed)));

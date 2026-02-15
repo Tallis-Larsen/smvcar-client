@@ -21,9 +21,10 @@ void ServerAPI::onDisconnected() {
 }
 
 void ServerAPI::processMessage(const QString& message) {
-
     for (const QString& queueMessage : pendingMessages) {
-        if (queueMessage == message) {
+        QJsonObject queueMessageObject = QJsonDocument::fromJson(queueMessage.toUtf8()).object();
+        QJsonObject activeMessageObject = QJsonDocument::fromJson(message.toUtf8()).object();
+        if (queueMessageObject["command_id"].toString() == activeMessageObject["command_id"].toString()) {
             pendingMessages.removeOne(queueMessage);
             return;
         }
@@ -97,7 +98,7 @@ QString ServerAPI::getUrl() {
 QString ServerAPI::lap(QDateTime time) {
     QJsonObject message;
     message["function"] = "lap";
-    message["timestamp"] = time.toString(Qt::ISODateWithMs);
+    message["timestamp"] = time.toUTC().toString(Qt::ISODateWithMs);
     QString commandId = nextCommandId();
     message["command_id"] = commandId;
     sendMessage(message);
@@ -107,7 +108,7 @@ QString ServerAPI::lap(QDateTime time) {
 QString ServerAPI::startStopwatch(QDateTime time) {
     QJsonObject message;
     message["function"] = "startStopwatch";
-    message["timestamp"] = time.toString(Qt::ISODateWithMs);
+    message["timestamp"] = time.toUTC().toString(Qt::ISODateWithMs);
     QString commandId = nextCommandId();
     message["command_id"] = commandId;
     sendMessage(message);
@@ -117,7 +118,7 @@ QString ServerAPI::startStopwatch(QDateTime time) {
 QString ServerAPI::stopStopwatch(QDateTime time) {
     QJsonObject message;
     message["function"] = "stopStopwatch";
-    message["timestamp"] = time.toString(Qt::ISODateWithMs);
+    message["timestamp"] = time.toUTC().toString(Qt::ISODateWithMs);
     QString commandId = nextCommandId();
     message["command_id"] = commandId;
     sendMessage(message);
