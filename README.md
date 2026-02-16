@@ -1,4 +1,6 @@
-# SMVCar-Client
+# SMVCar Client
+
+[SMVCar Server](https://github.com/Tallis-Larsen/smvcar-server)
 
 ## Setup
 
