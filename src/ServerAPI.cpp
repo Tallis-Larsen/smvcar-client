@@ -88,6 +88,8 @@ void ServerAPI::processMessage(const QString& message) {
     } else if (function == LAP) {
         QDateTime time = QDateTime::fromString(command[TIMESTAMP].toString(), Qt::ISODateWithMs);
         emit addLap(time, command[COMMAND_ID].toString());
+    } else if (function == REJECT) {
+        emit removeLap(command[COMMAND_ID].toString());
     }
 
 }

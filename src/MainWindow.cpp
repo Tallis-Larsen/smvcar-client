@@ -19,7 +19,7 @@ MainWindow::MainWindow() : stopwatch(this), wifiDialogue(this), serverDialogue(t
     wifiStateIndicator.setAlignment(Qt::AlignRight);
 
     khsLogo.setGeometry(290, 60, 180, 135);
-    QPixmap pixmap("KHS_Logo.png");
+    QPixmap pixmap(QCoreApplication::applicationDirPath() + "/KHS_Logo.png");
     khsLogo.setPixmap(pixmap.scaled(khsLogo.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
     khsLogo.setAttribute(Qt::WA_TranslucentBackground);
     khsLogo.setAlignment(Qt::AlignCenter);
