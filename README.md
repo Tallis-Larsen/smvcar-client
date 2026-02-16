@@ -107,3 +107,7 @@ Done! Now you can run the program with:
 ```bash
 sudo QT_QPA_PLATFORM=linuxfb ./smvcar-client
 ```
+
+## Help
+
+If you need any help or encounter any bugs, please ask an AI first (I recommend [Claude](https://claude.ai)). If that doesn't work, then contact me at `tallisblarsen@gmail.com`, which is where I'll be most responsive.
