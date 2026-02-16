@@ -36,7 +36,8 @@ To connect to the [server](https://github.com/Tallis-Larsen/smvcar-server), you 
 
 The `start`, `stop`, and `reset` functions are all mapped to the bottom button on the clicker. Simply press it once to start the stopwatch, press again to stop, and press once more to reset.
 
-> NOTE: For networking simplicity purposes, only the Raspberry Pi client has the ability to start, stop, and reset the stopwatch. Because of this, make sure that the driver remembers to start the timer, because the pit crew will not be able to do it for them.
+> [!NOTE]
+> For networking simplicity purposes, only the Raspberry Pi client has the ability to start, stop, and reset the stopwatch. Because of this, make sure that the driver remembers to start the timer, because the pit crew will not be able to do it for them.
 
 ### Lapping
 
@@ -58,11 +59,13 @@ These features are intended to help both the driver and the pit crew stay on pac
 
 A cheap AliExpress [clicker](https://www.aliexpress.us/item/3256806867641044.html) (and its charger) has been provided with the Raspberry Pi. This will automatically connect to the Pi over bluetooth when powered on. To power on the clicker, simply press and hold the middle button for a few seconds. Do the same to power it off. 
 
-> NOTE: The clicker will sometimes register an input of the bottom button if the middle button is still being held when it connects to the Raspberry Pi. Be wary of this fact while driving as to not perform any misinputs.
+> [!NOTE]
+> The clicker will sometimes register an input of the bottom button if the middle button is still being held when it connects to the Raspberry Pi. Be wary of this fact while driving as to not perform any misinputs.
 
 A wireless clicker was chosen specifically for the fact that it can be mounted anywhere, without requiring a direct connection to the Pi. Feel free to mount this device wherever it works best, as long as the charging port and buttons are still accessible. You are welcome to cut off the plastic "ring" part of the casing, or even discard the enclosure entirely and just use the raw PCB.
 
-> WARNING: The clicker will automatically power itself off after 5 minutes of inactivity. I have yet to find a way around this, as it is built into the firmware of the device. To prevent the clicker from turning off during laps longer than 5 minutes, quickly press the middle button once. This will not power off the device or register any input, but it will keep the clicker from turning off for another 5 minutes.
+> [!WARNING]
+> The clicker will automatically power itself off after 5 minutes of inactivity. I have yet to find a way around this, as it is built into the firmware of the device. To prevent the clicker from turning off during laps longer than 5 minutes, quickly press the middle button once. This will not power off the device or register any input, but it will keep the clicker from turning off for another 5 minutes.
 
 ### Raspberry Pi
 
